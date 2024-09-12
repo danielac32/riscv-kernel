@@ -1,0 +1,33 @@
+
+CC = riscv64-unknown-elf-gcc
+CFLAGS = -I include  -ffreestanding -nostdlib -nostartfiles -lm -static -lgcc -fno-builtin  
+CFLAGS +=-O3  -march=rv32ima -mabi=ilp32
+OBJ = \
+system/boot.S \
+system/intr.S \
+system/ctxsw.S \
+floatmath/*.S \
+system/*.c   \
+lib/*.c       \
+shell/*.c       \
+device/nam/*.c       \
+device/tty/*.c       \
+littlefs/*.c
+
+
+all: $(OBJ)
+	clear
+	$(CC) $(CFLAGS) -T linker.ld -o kernel.elf $^
+
+	#riscv64-unknown-elf-gcc -o boot.o $(CFLAGS)  boot.s
+	#riscv64-unknown-elf-gcc -o main.o $(CFLAGS)  main.c
+	#riscv64-unknown-elf-ld boot.o main.o  -T linker.ld  -o test1.elf 
+	riscv32-unknown-elf-objdump -d kernel.elf>assembler.txt
+	riscv32-unknown-elf-objcopy kernel.elf -O binary kernel.bin
+	riscv32-unknown-elf-size kernel.elf
+
+
+run:
+	clear
+	gcc -o mini-rv32ima ../mini-rv32ima/mini-rv32ima.c 
+	./mini-rv32ima -f kernel.bin
